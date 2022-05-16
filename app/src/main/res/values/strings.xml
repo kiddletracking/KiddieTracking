@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Kiddie Tracking</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="child_details">Child Details</string>
+    <string name="driver_details">Driver Details</string>
+    <string name="call_driver">Call Driver</string>
+    <string name="track_bus">Track Bus</string>
+    <string name="there_is_no_on_going_journey">There is no on going journey</string>
+</resources>
