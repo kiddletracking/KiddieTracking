@@ -6,5 +6,6 @@ data class User(
     val image: String? = "",
     val classStd: String? = "",
     val parentName: String? = "",
-    val parentContact: String? = ""
+    val parentContact: String? = "",
+    val driverUid: String? = ""
 )

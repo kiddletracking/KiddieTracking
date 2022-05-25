@@ -8,8 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.wadachirebandi.kiddietracking.daos.DriverDao
+import com.wadachirebandi.kiddietracking.daos.UserDao
 import com.wadachirebandi.kiddietracking.databinding.FragmentDriverBinding
 import com.wadachirebandi.kiddietracking.models.Driver
+import com.wadachirebandi.kiddietracking.models.User
 
 class DriverFragment : Fragment() {
 
@@ -25,11 +27,18 @@ class DriverFragment : Fragment() {
     ): View {
         _binding = FragmentDriverBinding.inflate(layoutInflater, container, false)
 
-        driverDao.driverCollection.document("OtQfKg2Qxi6QAvzQIMLG")
+        UserDao().getUser().addOnSuccessListener {
+            it.toObject(User::class.java)?.let { it1 -> getBusDriver(it1) }
+        }
+
+        return binding.root
+    }
+
+    private fun getBusDriver(user: User) {
+        driverDao.driverCollection.document(user.driverUid!!)
             .get().addOnSuccessListener {
                 updateUi((it.toObject(Driver::class.java)))
             }
-        return binding.root
     }
 
     private fun updateUi(driverDetails: Driver?) {

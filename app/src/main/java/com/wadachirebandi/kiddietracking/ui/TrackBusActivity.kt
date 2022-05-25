@@ -10,8 +10,10 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.wadachirebandi.kiddietracking.R
-import com.wadachirebandi.kiddietracking.daos.LocationDao
+import com.wadachirebandi.kiddietracking.daos.DriverDao
+import com.wadachirebandi.kiddietracking.daos.UserDao
 import com.wadachirebandi.kiddietracking.databinding.ActivityTrackBusBinding
+import com.wadachirebandi.kiddietracking.models.User
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -32,31 +34,45 @@ class TrackBusActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
-        checkJourney()
+        UserDao().getUser().addOnSuccessListener {
+            it.toObject(User::class.java)?.let { it1 -> getBusDriver(it1) }
+        }
     }
 
-    private fun checkJourney() {
-        LocationDao().locationCollection.get().addOnSuccessListener { isLocationEnable ->
-            liveLocation = isLocationEnable["live_location"] as Boolean
-            if (liveLocation) {
-                LocationDao().locationCollection2.get().addOnSuccessListener{
-                    val locationLat = it["latitude"]
-                    val locationLong = it["longitude"]
-                    val latLng = LatLng(locationLat as Double, locationLong as Double)
-                    map.addMarker(
-                        MarkerOptions().position(latLng)
-                            .title("The BUS is currently here"))
-                    val update = CameraUpdateFactory.newLatLngZoom(latLng, 16.0f)
-                    map.moveCamera(update)
+    private fun getBusDriver(user: User) {
+        checkJourney(user.driverUid)
+    }
+
+    private fun checkJourney(driverUid: String?) {
+        DriverDao().driverCollection.document(driverUid!!).collection("Location")
+            .document("ap9IhGYNgDtqUkw8nus1").get().addOnSuccessListener { isLocationEnable ->
+                if (isLocationEnable.exists()) {
+
+                    liveLocation = isLocationEnable["live_location"] as Boolean
+                    if (liveLocation) {
+                        DriverDao().driverCollection.document(driverUid).collection("Location")
+                            .document("72AJHIPdt2cVaFDQ2V5T").get().addOnSuccessListener {
+                                val locationLat = it["latitude"]
+                                val locationLong = it["longitude"]
+                                val latLng = LatLng(locationLat as Double, locationLong as Double)
+                                map.addMarker(
+                                    MarkerOptions().position(latLng)
+                                        .title("The BUS is currently here")
+                                )
+                                val update = CameraUpdateFactory.newLatLngZoom(latLng, 16.0f)
+                                map.moveCamera(update)
+                            }
+                        CoroutineScope(Dispatchers.IO).launch {
+                            delay(5000)
+                            checkJourney(driverUid)
+                        }
+                    } else {
+                        binding.textView.visibility = View.VISIBLE
+                    }
+                } else {
+                    binding.textView.visibility = View.VISIBLE
                 }
-                CoroutineScope(Dispatchers.IO).launch {
-                    delay(5000)
-                    checkJourney()
-                }
-            }else{
-                binding.textView.visibility = View.VISIBLE
             }
-        }
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
